@@ -1,0 +1,6 @@
+{
+  "name": "AI-Powered health prediction and tracking app",
+  "description": "An intelligent healthcare web application for predicting multiple diseases, tracking health history, and receiving AI-generated medical insights and recommendations using OpenRouter.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}

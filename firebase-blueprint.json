@@ -1,0 +1,184 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Stores user demographic and basic health information.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "fullName": { "type": "string" },
+        "email": { "type": "string" },
+        "age": { "type": "number" },
+        "gender": { "type": "string", "enum": ["male", "female", "other"] },
+        "weight": { "type": "number", "description": "Weight in kg" },
+        "height": { "type": "number", "description": "Height in cm" },
+        "medicalHistory": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "fullName", "email"]
+    },
+    "HealthRecord": {
+      "title": "Health Record",
+      "description": "User-submitted vital signs and symptoms.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "glucose": { "type": "number" },
+        "systolicBP": { "type": "number" },
+        "diastolicBP": { "type": "number" },
+        "cholesterol": { "type": "number" },
+        "bmi": { "type": "number" },
+        "symptoms": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "timestamp"]
+    },
+    "Prediction": {
+      "title": "Disease Prediction",
+      "description": "Results from the prediction engine for a specific health record.",
+      "type": "object",
+      "properties": {
+        "recordId": { "type": "string" },
+        "userId": { "type": "string" },
+        "results": {
+          "type": "object",
+          "description": "Map of disease name to probability/risk level"
+        },
+        "timestamp": { "type": "string", "format": "date-time" }
+      }
+    },
+    "Insight": {
+      "title": "AI Insight",
+      "description": "AI-generated explanation and recommendations.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "predictionId": { "type": "string" },
+        "content": { "type": "string" },
+        "riskLevel": { "type": "string", "enum": ["low", "moderate", "high", "critical"] },
+        "timestamp": { "type": "string", "format": "date-time" }
+      }
+    },
+    "Alert": {
+      "title": "Health Alert",
+      "description": "Notifications for critical health values.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "message": { "type": "string" },
+        "severity": { "type": "string" },
+        "isRead": { "type": "boolean" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      }
+    },
+    "Medication": {
+      "title": "Medication",
+      "description": "Prescribed medications tracked by the user.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "dosage": { "type": "string" },
+        "frequency": { "type": "string" },
+        "purpose": { "type": "string" },
+        "startDate": { "type": "string" },
+        "active": { "type": "boolean" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "name", "active"]
+    },
+    "HealthGoal": {
+      "title": "Health Goal",
+      "description": "Daily wellness targets set by the user.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "targetValue": { "type": "number" },
+        "currentValue": { "type": "number" },
+        "unit": { "type": "string" },
+        "category": { "type": "string", "enum": ["steps", "water", "sleep", "calories", "exercise"] },
+        "completed": { "type": "boolean" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "title", "targetValue", "category"]
+    },
+    "Vaccination": {
+      "title": "Vaccination Record",
+      "description": "Immunization history records.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "date": { "type": "string" },
+        "provider": { "type": "string" },
+        "notes": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "name", "date"]
+    },
+    "Appointment": {
+      "title": "Medical Appointment",
+      "description": "Scheduled or completed clinical visits.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "doctorName": { "type": "string" },
+        "specialty": { "type": "string" },
+        "date": { "type": "string" },
+        "time": { "type": "string" },
+        "location": { "type": "string" },
+        "notes": { "type": "string" },
+        "status": { "type": "string", "enum": ["scheduled", "completed", "cancelled"] },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "doctorName", "date", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles indexed by UID."
+    },
+    "/users/{userId}/health_records/{recordId}": {
+      "schema": "HealthRecord",
+      "description": "Vitals and health logs for a user."
+    },
+    "/users/{userId}/predictions/{predictionId}": {
+      "schema": "Prediction",
+      "description": "ML model outputs for specific logs."
+    },
+    "/users/{userId}/insights/{insightId}": {
+      "schema": "Insight",
+      "description": "AI-generated qualitative medical insights."
+    },
+    "/users/{userId}/alerts/{alertId}": {
+      "schema": "Alert",
+      "description": "Health alerts and notifications."
+    },
+    "/users/{userId}/medications/{medicationId}": {
+      "schema": "Medication",
+      "description": "Active and past medications."
+    },
+    "/users/{userId}/health_goals/{goalId}": {
+      "schema": "HealthGoal",
+      "description": "Daily wellness targets."
+    },
+    "/users/{userId}/vaccinations/{vaccinationId}": {
+      "schema": "Vaccination",
+      "description": "Immunization records."
+    },
+    "/users/{userId}/appointments/{appointmentId}": {
+      "schema": "Appointment",
+      "description": "Medical visit logs."
+    },
+    "/users/{userId}/symptoms/{symptomId}": {
+      "schema": "SymptomLog",
+      "description": "Journal of physical symptoms and intensity."
+    },
+    "/users/{userId}/emergency_contacts/{contactId}": {
+      "schema": "EmergencyContact",
+      "description": "Critical contact information for emergencies."
+    }
+  }
+}

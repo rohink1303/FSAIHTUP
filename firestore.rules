@@ -1,0 +1,172 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Common Helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return (request.auth != null && request.auth.uid == userId) || userId == 'public_user_v1';
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isEmailVerified() {
+      return (request.auth != null && request.auth.token.email_verified == true) || true;
+    }
+
+    // Validation Blueprints
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'fullName', 'email', 'createdAt'])
+        && (data.uid == 'public_user_v1' || (request.auth != null && data.uid == request.auth.uid))
+        && data.email is string
+        && data.fullName is string && data.fullName.size() <= 100
+        && (data.age == null || (data.age is number && data.age >= 0 && data.age <= 150));
+    }
+
+    function isValidHealthRecord(data) {
+      return data.keys().hasAll(['userId', 'timestamp'])
+        && (data.userId == 'public_user_v1' || (request.auth != null && data.userId == request.auth.uid))
+        && data.timestamp == request.time;
+    }
+
+    function isValidPrediction(data) {
+      return data.keys().hasAll(['userId', 'recordId', 'results', 'timestamp'])
+        && (data.userId == 'public_user_v1' || (request.auth != null && data.userId == request.auth.uid));
+    }
+
+    function isValidMedication(data) {
+      return data.keys().hasAll(['userId', 'name', 'active', 'timestamp'])
+        && (data.userId == 'public_user_v1' || (request.auth != null && data.userId == request.auth.uid))
+        && data.name is string && data.name.size() <= 200
+        && data.active is bool;
+    }
+
+    function isValidHealthGoal(data) {
+      return data.keys().hasAll(['userId', 'title', 'targetValue', 'category', 'completed', 'timestamp'])
+        && (data.userId == 'public_user_v1' || (request.auth != null && data.userId == request.auth.uid))
+        && data.title is string && data.title.size() <= 200
+        && data.targetValue is number
+        && data.category in ['steps', 'water', 'sleep', 'calories', 'exercise']
+        && data.completed is bool;
+    }
+
+    function isValidVaccination(data) {
+      return data.keys().hasAll(['userId', 'name', 'date', 'timestamp'])
+        && (data.userId == 'public_user_v1' || (request.auth != null && data.userId == request.auth.uid))
+        && data.name is string && data.name.size() <= 200
+        && data.date is string;
+    }
+
+    function isValidAppointment(data) {
+      return data.keys().hasAll(['userId', 'doctorName', 'date', 'status', 'timestamp'])
+        && (data.userId == 'public_user_v1' || (request.auth != null && data.userId == request.auth.uid))
+        && data.doctorName is string && data.doctorName.size() <= 200
+        && data.date is string
+        && data.status in ['scheduled', 'completed', 'cancelled'];
+    }
+
+    function isValidSymptom(data) {
+      return data.keys().hasAll(['userId', 'symptom', 'intensity', 'timestamp'])
+        && (data.userId == 'public_user_v1' || (request.auth != null && data.userId == request.auth.uid))
+        && data.symptom is string && data.symptom.size() <= 200
+        && data.intensity is number && data.intensity >= 1 && data.intensity <= 10;
+    }
+
+    function isValidEmergencyContact(data) {
+      return data.keys().hasAll(['userId', 'name', 'relationship', 'phone', 'timestamp'])
+        && (data.userId == 'public_user_v1' || (request.auth != null && data.userId == request.auth.uid))
+        && data.name is string && data.name.size() <= 200
+        && data.relationship is string && data.relationship.size() <= 100
+        && data.phone is string && data.phone.size() <= 20;
+    }
+
+    // Match Groups
+    match /users/{userId} {
+      allow get, write: if isOwner(userId) && isValidId(userId);
+      allow create: if isOwner(userId) && isValidUser(incoming());
+      allow update: if isOwner(userId) && isValidUser(incoming())
+        && incoming().diff(existing()).affectedKeys().hasOnly(['fullName', 'age', 'gender', 'weight', 'height', 'medicalHistory']);
+
+      match /health_records/{recordId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidHealthRecord(incoming());
+        allow delete: if isOwner(userId);
+      }
+
+      match /predictions/{predictionId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidPrediction(incoming());
+      }
+
+      match /insights/{insightId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isOwner(userId);
+      }
+
+      match /alerts/{alertId} {
+        allow list, get: if isOwner(userId);
+        allow update: if isOwner(userId) && incoming().diff(existing()).affectedKeys().hasOnly(['isRead']);
+        allow delete: if isOwner(userId);
+      }
+
+      match /medications/{medicationId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidMedication(incoming());
+        allow update: if isOwner(userId) && isValidMedication(incoming());
+        allow delete: if isOwner(userId);
+      }
+
+      match /health_goals/{goalId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidHealthGoal(incoming());
+        allow update: if isOwner(userId) && isValidHealthGoal(incoming());
+        allow delete: if isOwner(userId);
+      }
+
+      match /vaccinations/{vaccinationId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidVaccination(incoming());
+        allow delete: if isOwner(userId);
+      }
+
+      match /appointments/{appointmentId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidAppointment(incoming());
+        allow update: if isOwner(userId) && isValidAppointment(incoming());
+        allow delete: if isOwner(userId);
+      }
+
+      match /symptoms/{symptomId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidSymptom(incoming());
+        allow update: if isOwner(userId) && isValidSymptom(incoming());
+        allow delete: if isOwner(userId);
+      }
+
+      match /emergency_contacts/{contactId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidEmergencyContact(incoming());
+        allow update: if isOwner(userId) && isValidEmergencyContact(incoming());
+        allow delete: if isOwner(userId);
+      }
+    }
+  }
+}

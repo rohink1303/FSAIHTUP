@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-primary: #2563eb; /* blue-600 */
+  --color-brand-secondary: #1e293b; /* slate-800 */
+  --color-brand-accent: #10b981; /* emerald-500 */
+  --color-slate-950: #020617;
+  --color-slate-900: #0f172a;
+  --color-slate-800: #1e293b;
+  --color-slate-400: #94a3b8;
+  --color-slate-500: #64748b;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-slate-950 text-slate-200 antialiased font-sans;
+  }
+}
+
+.medical-card {
+  @apply bg-slate-900 border border-slate-800 rounded-2xl p-6 transition-all duration-300;
+}
+
+.input-primary {
+  @apply w-full px-4 py-2 bg-slate-950 text-white rounded-xl border border-slate-800 focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition-all placeholder:text-slate-600;
+}
+
+.btn-primary {
+  @apply bg-blue-600 text-white px-6 py-3 rounded-xl font-bold text-sm shadow-lg shadow-blue-900/20 hover:bg-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.btn-secondary {
+  @apply bg-slate-800 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-slate-700 transition-all;
+}
+
+.label-caps {
+  @apply text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1 block;
+}
+
+.value-highlight {
+  @apply text-2xl font-bold text-white;
+}
+
+/* Scrollbar styling for dark theme */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-800 rounded-full hover:bg-slate-700;
+}
+
